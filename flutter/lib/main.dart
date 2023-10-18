@@ -25,24 +25,23 @@ Future<Null> main() async {
     ),
   );
   await a;
-  await b;
+  //await b;
   refreshCurrentUser();
   toAndroidChannelInit();
   FFI.setByName('option',
-      '{"name": "custom-rendezvous-server", "value": "supportdesk.itportaal.nl"}');
+      '{"name": "custom-rendezvous-server", "value": "192.168.171.12"}');
+  FFI.setByName(
+      'option', '{"name": "relay-server", "value": "192.168.171.12"}');
   FFI.setByName('option',
-      '{"name": "relay-server", "value": "supportdesk.itportaal.nl"}');
-  FFI.setByName('option',
-      '{"name": "key", "value": "OvYPJS8I5xV+d6sx3a7Ce9TVakfKdT3Zy3T7C1jjx+A="}');
-  FFI.setByName('option',
-      '{"name": "api-server", "value": "https://supportdesk.itportaal.nl"}');
+      '{"name": "key", "value": "O0SgOk3IACtZeHHqAFHZzB7RDEX+Q8n9xw1hArqH33U="}');
+  FFI.setByName('option', '{"name": "api-server", "value": ""}');
   runApp(App());
 }
 
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final analytics = FirebaseAnalytics.instance;
+    //final analytics = FirebaseAnalytics.instance;
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: FFI.ffiModel),
@@ -78,7 +77,7 @@ class App extends StatelessWidget {
           ),
           home: !isAndroid ? WebHomePage() : HomePage(),
           navigatorObservers: [
-            FirebaseAnalyticsObserver(analytics: analytics),
+            //FirebaseAnalyticsObserver(analytics: analytics),
             FlutterSmartDialog.observer
           ],
           builder: FlutterSmartDialog.init(

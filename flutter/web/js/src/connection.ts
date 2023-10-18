@@ -9,7 +9,7 @@ import { decompress, mapKey, sleep } from "./common";
 const PORT = 21116;
 // only the first is used to init `HOST`
 const HOSTS = [
-  "10.115.10.123",
+  "192.168.171.12",
 ];
 let HOST = localStorage.getItem("rendezvous-server") || HOSTS[0];
 const SCHEMA = "ws://";
@@ -156,7 +156,7 @@ export default class Connection {
 
   async secure(pk: Uint8Array | undefined) {
     if (pk) {
-      const RS_PK = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
+      const RS_PK = "O0SgOk3IACtZeHHqAFHZzB7RDEX+Q8n9xw1hArqH33U=";
       try {
         pk = await globals.verify(pk, localStorage.getItem("key") || RS_PK);
         if (pk) {
@@ -442,9 +442,9 @@ export default class Connection {
             if (this._videoTestSpeed[0] >= 30) {
               console.log(
                 "video decoder: " +
-                  parseInt(
-                    "" + this._videoTestSpeed[1] / this._videoTestSpeed[0]
-                  )
+                parseInt(
+                  "" + this._videoTestSpeed[1] / this._videoTestSpeed[0]
+                )
               );
               this._videoTestSpeed = [0, 0];
             }
