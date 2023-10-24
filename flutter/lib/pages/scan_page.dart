@@ -9,6 +9,8 @@ import 'dart:convert';
 import '../common.dart';
 import '../models/model.dart';
 
+import 'security_page.dart';
+
 class ScanPage extends StatefulWidget {
   @override
   _ScanPageState createState() => _ScanPageState();
@@ -157,6 +159,7 @@ void showServerSettingsWithValue(
   final relay0 = FFI.getByName('option', 'relay-server');
   final api0 = FFI.getByName('option', 'api-server');
   final key0 = FFI.getByName('option', 'key');
+
   DialogManager.show((setState, close) {
     return CustomAlertDialog(
       title: Text(translate('ID/Relay Server')),
@@ -232,8 +235,10 @@ void showServerSettingsWithValue(
               if (relay != relay0)
                 FFI.setByName(
                     'option', '{"name": "relay-server", "value": "$relay"}');
-              if (key != key0)
+              if (key != key0) {
                 FFI.setByName('option', '{"name": "key", "value": "$key"}');
+                // Aktualisierung
+              }
               if (api != api0)
                 FFI.setByName(
                     'option', '{"name": "api-server", "value": "$api"}');

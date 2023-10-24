@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/pages/chat_page.dart';
+import 'package:flutter_hbb/pages/security_page.dart';
 import 'package:flutter_hbb/pages/server_page.dart';
 import 'package:flutter_hbb/pages/settings_page.dart';
 import '../common.dart';
@@ -79,15 +80,22 @@ class _HomePageState extends State<HomePage> {
 
 class WebHomePage extends StatelessWidget {
   final connectionPage = ConnectionPage();
+  final securityPage = SecurityPage();
+
+  List<Widget> combinedActions = [];
 
   @override
   Widget build(BuildContext context) {
+    combinedActions.addAll(securityPage.appBarActions);
+    combinedActions.add(SizedBox(width: 16));
+    combinedActions.addAll(connectionPage.appBarActions);
+
     return Scaffold(
       backgroundColor: MyTheme.grayBg,
       appBar: AppBar(
         centerTitle: true,
         title: Text("RustDesk" + (isWeb ? " (Beta) " : "")),
-        actions: connectionPage.appBarActions,
+        actions: combinedActions,
       ),
       body: connectionPage,
     );
@@ -98,9 +106,10 @@ class PassArgumentsScreen extends StatelessWidget {
   static const routeName = '/connect';
   late var connectionPage;
   late Map<String, String> queryParameters;
-  PassArgumentsScreen(Map<String, String> queryParameters){
+  PassArgumentsScreen(Map<String, String> queryParameters) {
     this.queryParameters = queryParameters;
-    connectionPage = ConnectionPage(id: queryParameters['id'], pw: queryParameters['pw']);
+    connectionPage =
+        ConnectionPage(id: queryParameters['id'], pw: queryParameters['pw']);
   }
 
   @override

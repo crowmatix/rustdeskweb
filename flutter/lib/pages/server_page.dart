@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import '../common.dart';
 import '../models/server_model.dart';
 import 'home_page.dart';
-import '../models/model.dart';
 
 class ServerPage extends StatelessWidget implements PageShape {
   @override

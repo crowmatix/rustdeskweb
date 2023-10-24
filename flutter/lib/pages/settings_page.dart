@@ -101,7 +101,6 @@ void showAbout() {
     return CustomAlertDialog(
       title: Text(translate('About') + ' RustDesk'),
       content: Wrap(direction: Axis.vertical, spacing: 12, children: [
-        Text('Version: $version'),
         InkWell(
             onTap: () async {
               const url = 'https://rustdesk.com/';

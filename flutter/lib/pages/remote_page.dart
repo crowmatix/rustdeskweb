@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/models/chat_model.dart';
+import 'package:flutter_hbb/pages/security_page.dart';
 import 'package:flutter_hbb/widgets/gesture_help.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:provider/provider.dart';
@@ -29,7 +30,7 @@ class RemotePage extends StatefulWidget {
 class _RemotePageState extends State<RemotePage> {
   Timer? _interval;
   Timer? _timer;
-  bool _showBar = !isDesktop;
+  bool _showBar = true; //!isDesktop;
   double _bottom = 0;
   String _value = '';
   double _scale = 1;
@@ -57,7 +58,6 @@ class _RemotePageState extends State<RemotePage> {
     _physicalFocusNode.requestFocus();
     FFI.ffiModel.updateEventListener(widget.id, widget.pw);
     FFI.listenToMouse(true);
-
   }
 
   @override
@@ -444,7 +444,7 @@ class _RemotePageState extends State<RemotePage> {
                               ),
                             ]) +
                   (isWeb
-                      ? []
+                      ? [SecMenu()]
                       : <Widget>[
                           IconButton(
                             color: Colors.white,
@@ -624,8 +624,7 @@ class _RemotePageState extends State<RemotePage> {
       paints.add(CursorPaint());
     }
 
-    FFI.setByName(
-        'peer_option', '{"name": "view-style", "value": "shrink"}');
+    FFI.setByName('peer_option', '{"name": "view-style", "value": "shrink"}');
     FFI.canvasModel.updateViewStyle();
 
     return Container(
