@@ -44,7 +44,7 @@ class _ConnectionPageState extends State<ConnectionPage> {
       });
     }
 
-    if(widget.id != null && widget.pw != null){
+    if (widget.id != null && widget.pw != null) {
       connect(widget.id!, widget.pw!);
     }
   }
@@ -219,7 +219,8 @@ class _ConnectionPageState extends State<ConnectionPage> {
           child: Card(
               child: GestureDetector(
                   onTap: !isDesktop ? () => connect('${p.id}', null) : null,
-                  onDoubleTap: isDesktop ? () => connect('${p.id}', null) : null,
+                  onDoubleTap:
+                      isDesktop ? () => connect('${p.id}', null) : null,
                   onLongPressStart: (details) {
                     final x = details.globalPosition.dx;
                     final y = details.globalPosition.dy;
@@ -324,7 +325,7 @@ class _WebMenuState extends State<WebMenu> {
         },
         onSelected: (value) {
           if (value == 'server') {
-            showServerSettings();
+            showServerSettings(context);
           }
           if (value == 'about') {
             showAbout();

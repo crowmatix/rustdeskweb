@@ -3,13 +3,14 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:provider/provider.dart';
 import 'common.dart';
 import 'models/model.dart';
+import 'models/security_model.dart';
 import 'pages/home_page.dart';
 import 'pages/server_page.dart';
 import 'pages/settings_page.dart';
 
 Future<Null> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  var a = FFI.ffiModel.init();
+  FFI.ffiModel.init();
   refreshCurrentUser();
   toAndroidChannelInit();
   FFI.setByName('option',
@@ -31,6 +32,9 @@ class App extends StatelessWidget {
         ChangeNotifierProvider.value(value: FFI.imageModel),
         ChangeNotifierProvider.value(value: FFI.cursorModel),
         ChangeNotifierProvider.value(value: FFI.canvasModel),
+        ChangeNotifierProvider(
+          create: (context) => SecurityProvider(),
+        ),
       ],
       child: MaterialApp(
           initialRoute: '/',
@@ -50,6 +54,7 @@ class App extends StatelessWidget {
                 },
               );
             }
+            return null; // TEST
           },
           navigatorKey: globalKey,
           debugShowCheckedModeBanner: false,

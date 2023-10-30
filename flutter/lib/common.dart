@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hbb/models/security_model.dart';
 import 'dart:async';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
@@ -147,7 +148,8 @@ class CustomAlertDialog extends StatelessWidget {
   }
 }
 
-void msgBox(String type, String title, String text, {bool? hasCancel}) {
+void msgBox(String type, String title, String text, SecurityProvider pro,
+    {bool? hasCancel}) {
   var wrap = (String text, void Function() onPressed) => ButtonTheme(
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -166,6 +168,11 @@ void msgBox(String type, String title, String text, {bool? hasCancel}) {
     wrap(Translator.call('OK'), () {
       SmartDialog.dismiss();
       backToHome();
+      // Die Session Length adden falls req eingestellt
+      // TODO: && pro.inSession
+      if (pro.fourthSecReq) {
+        pro.addSessionLength();
+      }
     })
   ];
   if (hasCancel == null) {

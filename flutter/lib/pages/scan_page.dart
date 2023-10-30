@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
@@ -8,8 +9,7 @@ import 'dart:async';
 import 'dart:convert';
 import '../common.dart';
 import '../models/model.dart';
-
-import 'security_page.dart';
+import '../models/security_model.dart';
 
 class ScanPage extends StatefulWidget {
   @override
@@ -144,7 +144,7 @@ class _ScanPageState extends State<ScanPage> {
       var key = values['key'] != null ? values['key'] as String : '';
       var api = values['api'] != null ? values['api'] as String : '';
       Timer(Duration(milliseconds: 60), () {
-        showServerSettingsWithValue(host, '', key, api);
+        showServerSettingsWithValue(host, '', key, api, context);
       });
     } catch (e) {
       showToast('Invalid QR code');
@@ -153,12 +153,14 @@ class _ScanPageState extends State<ScanPage> {
 }
 
 void showServerSettingsWithValue(
-    String id, String relay, String key, String api) {
+    String id, String relay, String key, String api, BuildContext con) {
   final formKey = GlobalKey<FormState>();
   final id0 = FFI.getByName('option', 'custom-rendezvous-server');
   final relay0 = FFI.getByName('option', 'relay-server');
   final api0 = FFI.getByName('option', 'api-server');
   final key0 = FFI.getByName('option', 'key');
+
+  final provider = Provider.of<SecurityProvider>(con, listen: false);
 
   DialogManager.show((setState, close) {
     return CustomAlertDialog(
@@ -237,7 +239,8 @@ void showServerSettingsWithValue(
                     'option', '{"name": "relay-server", "value": "$relay"}');
               if (key != key0) {
                 FFI.setByName('option', '{"name": "key", "value": "$key"}');
-                // Aktualisierung
+                // SecurityWidget Update
+                provider.isSecTwoCheck();
               }
               if (api != api0)
                 FFI.setByName(

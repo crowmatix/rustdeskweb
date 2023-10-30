@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_hbb/models/chat_model.dart';
 import 'package:flutter_hbb/models/file_model.dart';
+import 'package:flutter_hbb/models/security_model.dart';
 import 'package:flutter_hbb/models/server_model.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -200,7 +201,8 @@ class FfiModel with ChangeNotifier {
   }
 
   void showMsgBox(String type, String title, String text, bool hasRetry) {
-    msgBox(type, title, text);
+    var dummy = SecurityProvider();
+    msgBox(type, title, text, dummy);
     _timer?.cancel();
     if (hasRetry) {
       _timer = Timer(Duration(seconds: _reconnects), () {

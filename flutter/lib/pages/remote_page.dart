@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/models/chat_model.dart';
+import 'package:flutter_hbb/models/security_model.dart';
 import 'package:flutter_hbb/pages/security_page.dart';
 import 'package:flutter_hbb/widgets/gesture_help.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -58,6 +59,12 @@ class _RemotePageState extends State<RemotePage> {
     _physicalFocusNode.requestFocus();
     FFI.ffiModel.updateEventListener(widget.id, widget.pw);
     FFI.listenToMouse(true);
+
+    // Wenn man den connect Button drückt, wird geloggt (falls secReq true) egal ob Versuch erfolgreich oder nicht
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
+    if (provider.fourthSecReq) {
+      provider.addInitalRow(widget.id);
+    }
   }
 
   @override
@@ -222,10 +229,11 @@ class _RemotePageState extends State<RemotePage> {
     final hideKeyboard = isKeyboardShown() && _showEdit;
     final showActionButton = !_showBar || hideKeyboard;
     final keyboard = FFI.ffiModel.permissions['keyboard'] != false;
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
 
     return WillPopScope(
       onWillPop: () async {
-        clientClose();
+        clientClose(provider);
         return false;
       },
       child: getRawPointerAndKeyBody(
@@ -387,6 +395,9 @@ class _RemotePageState extends State<RemotePage> {
   }
 
   Widget getBottomAppBar(bool keyboard) {
+    // Add Provider for Session length
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
+
     return BottomAppBar(
       elevation: 10,
       color: MyTheme.accent,
@@ -400,7 +411,7 @@ class _RemotePageState extends State<RemotePage> {
                       color: Colors.white,
                       icon: Icon(Icons.clear),
                       onPressed: () {
-                        clientClose();
+                        clientClose(provider);
                       },
                     )
                   ] +

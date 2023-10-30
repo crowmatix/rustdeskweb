@@ -3,7 +3,9 @@ import 'package:flutter_hbb/pages/chat_page.dart';
 import 'package:flutter_hbb/pages/security_page.dart';
 import 'package:flutter_hbb/pages/server_page.dart';
 import 'package:flutter_hbb/pages/settings_page.dart';
+import 'package:provider/provider.dart';
 import '../common.dart';
+import '../models/security_model.dart';
 import '../widgets/overlay.dart';
 import 'connection_page.dart';
 
@@ -86,6 +88,11 @@ class WebHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
+    provider.requirementsCheck();
+
+    //Timer.periodic(Duration(seconds : 1), (timer) {});
+
     combinedActions.addAll(securityPage.appBarActions);
     combinedActions.add(SizedBox(width: 16));
     combinedActions.addAll(connectionPage.appBarActions);

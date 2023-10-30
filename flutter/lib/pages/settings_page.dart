@@ -58,7 +58,7 @@ class _SettingsState extends State<SettingsPage> {
               title: Text(translate('ID/Relay Server')),
               leading: Icon(Icons.cloud),
               onPressed: (context) {
-                showServerSettings();
+                showServerSettings(context);
               },
             ),
           ],
@@ -88,12 +88,12 @@ class _SettingsState extends State<SettingsPage> {
   }
 }
 
-void showServerSettings() {
+void showServerSettings(BuildContext con) {
   final id = FFI.getByName('option', 'custom-rendezvous-server');
   final relay = FFI.getByName('option', 'relay-server');
   final api = FFI.getByName('option', 'api-server');
   final key = FFI.getByName('option', 'key');
-  showServerSettingsWithValue(id, relay, key, api);
+  showServerSettingsWithValue(id, relay, key, api, con);
 }
 
 void showAbout() {

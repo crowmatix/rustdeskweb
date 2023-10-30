@@ -9,7 +9,6 @@ import 'package:toggle_switch/toggle_switch.dart';
 
 import '../common.dart';
 import '../models/model.dart';
-import '../widgets/dialog.dart';
 
 class FileManagerPage extends StatefulWidget {
   FileManagerPage({Key? key, required this.id}) : super(key: key);
@@ -58,7 +57,7 @@ class _FileManagerPageState extends State<FileManagerPage> {
               backgroundColor: MyTheme.grayBg,
               appBar: AppBar(
                 leading: Row(children: [
-                  IconButton(icon: Icon(Icons.close), onPressed: clientClose),
+                  //IconButton( icon: Icon(Icons.close), onPressed: clientClose(),
                 ]),
                 centerTitle: true,
                 title: ToggleSwitch(

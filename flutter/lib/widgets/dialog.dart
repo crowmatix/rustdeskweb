@@ -1,12 +1,12 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_hbb/models/security_model.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import '../common.dart';
 import '../models/model.dart';
 
-void clientClose() {
-  msgBox('', 'Close', 'Are you sure to close the connection?');
+void clientClose(SecurityProvider pro) {
+  msgBox('', 'Close', 'Are you sure to close the connection?', pro);
 }
 
 const SEC1 = Duration(seconds: 1);
@@ -101,7 +101,7 @@ void updatePasswordDialog() {
 }
 
 void enterPasswordDialog(String id, String? password) {
-  if(password != null){
+  if (password != null) {
     FFI.login(password, false);
     // showLoading(translate('Logging in...'));
     return;
