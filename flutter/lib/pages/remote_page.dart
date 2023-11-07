@@ -45,6 +45,9 @@ class _RemotePageState extends State<RemotePage> {
   var _showEdit = false; // use soft keyboard
   var _isPhysicalMouse = false;
 
+  //Countdown
+  int timeLeft = 30;
+
   @override
   void initState() {
     super.initState();
@@ -60,10 +63,17 @@ class _RemotePageState extends State<RemotePage> {
     FFI.ffiModel.updateEventListener(widget.id, widget.pw);
     FFI.listenToMouse(true);
 
-    // Wenn man den connect Button drückt, wird geloggt (falls secReq true) egal ob Versuch erfolgreich oder nicht
+    // Wenn man den connect Button drückt, wird geloggt
+    //(falls secReq true) egal ob Versuch erfolgreich oder nicht
     final provider = Provider.of<SecurityProvider>(context, listen: false);
     if (provider.fourthSecReq) {
       provider.addInitalRow(widget.id);
+      // Eig nur wenn Verbindung erfolgreiche ist
+      provider.inSession = true;
+    }
+    if (provider.fifthSecReq) {
+      // Time Controller fuer Inactivecheck
+      //_startCountDown();
     }
   }
 
@@ -81,7 +91,20 @@ class _RemotePageState extends State<RemotePage> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);
     Wakelock.disable();
+
     super.dispose();
+  }
+
+  void _startCountDown() {
+    Timer.periodic(Duration(seconds: 1), (timer) {
+      if (timeLeft > 0) {
+        setState(() {
+          timeLeft--;
+        });
+      } else {
+        timer.cancel();
+      }
+    });
   }
 
   void resetTool() {
@@ -302,6 +325,8 @@ class _RemotePageState extends State<RemotePage> {
           }
           if (_isPhysicalMouse) {
             FFI.handleMouse(getEvent(e, 'mousemove'));
+            //TIMER RESET
+            // _timeController.restart();
           }
         },
         onPointerDown: (e) {
@@ -476,6 +501,14 @@ class _RemotePageState extends State<RemotePage> {
                         showActions();
                       },
                     ),
+                  ] +
+                  [
+                    provider.fifthSecReq
+                        ? Text(
+                            timeLeft.toString(),
+                            style: TextStyle(color: Colors.white, fontSize: 14),
+                          )
+                        : SizedBox(),
                   ]),
           IconButton(
               color: Colors.white,

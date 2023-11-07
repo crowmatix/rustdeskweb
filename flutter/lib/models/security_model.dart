@@ -1,9 +1,10 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/models/model.dart';
 import 'package:flutter_hbb/pages/security_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:password_strength_checker/password_strength_checker.dart';
 
 class SecurityProvider extends ChangeNotifier {
   bool firstSecReq;
@@ -14,7 +15,7 @@ class SecurityProvider extends ChangeNotifier {
   bool sixthSecReq;
   bool seventhSecReq;
 
-  bool overallSecurity;
+  late bool overallSecurity;
 
   bool inSession = false;
   late DataTable loggingData = createDataTable();
@@ -31,8 +32,13 @@ class SecurityProvider extends ChangeNotifier {
     this.overallSecurity = false,
   });
 
-  void changeFourthSecReq() {
-    fourthSecReq = !fourthSecReq;
+  Future<void> requirementsCheck() async {
+    isSecTwoCheck();
+    await isSecFourCheck();
+    isSecSevenCheck();
+    await isSecFiveCheck();
+    await isSecSixCheck();
+
     isOverAllSecurityCheck();
   }
 
@@ -40,38 +46,92 @@ class SecurityProvider extends ChangeNotifier {
     final key = FFI.getByName('option', 'key');
 
     if (key == '' || !_isKeySecure(key)) {
-      secondSecReq = false;
+      changeSecondSecReq(false);
     } else {
-      secondSecReq = true;
+      changeSecondSecReq(true);
     }
-    isOverAllSecurityCheck();
+  }
+
+  Future<void> isSecFourCheck() async {
+    // PERSISTENTE SPEICHERUNG checken und ggf ändern
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? reqFour = prefs.getBool('reqFour');
+    if (reqFour != null) {
+      fourthSecReq = reqFour;
+    }
+    getSavedLogs();
+  }
+
+  Future<void> isSecFiveCheck() async {
+    // PERSISTENTE SPEICHERUNG checken und ggf ändern
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? reqFive = prefs.getBool('reqFive');
+    if (reqFive != null) {
+      fifthSecReq = reqFive;
+    }
+  }
+
+  Future<void> isSecSixCheck() async {
+    // PERSISTENTE SPEICHERUNG checken und ggf ändern
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? reqSix = prefs.getBool('reqSix');
+    if (reqSix != null) {
+      sixthSecReq = reqSix;
+    }
   }
 
   void isSecSevenCheck() {
     if (newestWebVersion != version) {
-      seventhSecReq = false;
+      changeSeventhSecReq(false);
     } else {
-      seventhSecReq = true;
+      changeSeventhSecReq(true);
     }
-    isOverAllSecurityCheck();
   }
 
   void isOverAllSecurityCheck() {
-    overallSecurity = firstSecReq &&
+    if (firstSecReq &&
         secondSecReq &&
         thirdSecReq &&
         fourthSecReq &&
         fifthSecReq &&
         sixthSecReq &&
         seventhSecReq &&
-        seventhSecReq;
+        seventhSecReq) {
+      overallSecurity = true;
+    } else {
+      overallSecurity = false;
+    }
+    notifyListeners();
   }
 
-  void requirementsCheck() {
-    isSecTwoCheck();
-    isSecSevenCheck();
+  void changeSecondSecReq(bool b) {
+    secondSecReq = b;
+  }
 
-    isOverAllSecurityCheck();
+  Future<void> changeFourthSecReq(bool b) async {
+    fourthSecReq = b;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('reqFour', b);
+  }
+
+  Future<void> changeFifthSecReq(bool b) async {
+    fifthSecReq = b;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('reqFive', b);
+  }
+
+  Future<void> changeSixthSecReq(bool b) async {
+    sixthSecReq = b;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('reqSix', b);
+  }
+
+  void changeSeventhSecReq(bool b) {
+    seventhSecReq = b;
+  }
+
+  void changeInSession(bool b) {
+    inSession = b;
   }
 
   DataTable createDataTable() {
@@ -85,22 +145,15 @@ class SecurityProvider extends ChangeNotifier {
     );
   }
 
-  void addInitalRow(String id) {
+  Future<void> addInitalRow(String id) async {
     sessionStartTime = DateTime.now();
     final timeNow = DateTime.now();
 
-    var formattedTime =
+    String formattedTime =
         "${timeNow.day}.${timeNow.month}.${timeNow.year} - ${timeNow.hour}:";
 
-    if (timeNow.minute < 10)
-      formattedTime += "0${timeNow.minute}:";
-    else
-      formattedTime += "${timeNow.minute}:";
-
-    if (timeNow.second < 10)
-      formattedTime += "0${timeNow.second}";
-    else
-      formattedTime += "${timeNow.second}";
+    formattedTime += addZeroToString(timeNow.minute, true) + ':';
+    formattedTime += addZeroToString(timeNow.second, false);
 
     final newRow = DataRow(cells: [
       DataCell(Text(id)),
@@ -116,23 +169,27 @@ class SecurityProvider extends ChangeNotifier {
       columns: loggingData.columns,
       rows: currentRows,
     );
-    //notifyListeners(); // Informiere die Widgets über die Änderung der Daten.
+
+    // PERSISTENT ABSPEICHERN
+    List<String> dataAsStringList = [];
+
+    for (DataRow row in loggingData.rows) {
+      for (DataCell cell in row.cells) {
+        String? cellContent = (cell.child as Text).data;
+        dataAsStringList.add(cellContent!);
+      }
+    }
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('loggingData', dataAsStringList);
   }
 
-  void addSessionLength() {
+  Future<void> addSessionLength() async {
     final timeNow = DateTime.now();
     final difference = timeNow.difference(sessionStartTime);
 
     String formattedTime = '';
-    if (difference.inMinutes < 10)
-      formattedTime += '0${difference.inMinutes} min ';
-    else
-      formattedTime += '${difference.inMinutes} min ';
-
-    if (difference.inSeconds < 10)
-      formattedTime += '0${difference.inSeconds % 60} sec';
-    else
-      formattedTime += '${difference.inSeconds % 60} sec';
+    formattedTime += addZeroToString(difference.inMinutes, true) + ' min ';
+    formattedTime += addZeroToString(difference.inSeconds % 60, false) + ' sec';
 
     final List<DataRow> currentRows = List.from(loggingData.rows);
     final DataRow lastRow = currentRows.last;
@@ -149,19 +206,72 @@ class SecurityProvider extends ChangeNotifier {
       columns: loggingData.columns,
       rows: currentRows,
     );
+
+    // PERSISTENT ABSPEICHERN
+    List<String> dataAsStringList = [];
+
+    for (DataRow row in loggingData.rows) {
+      for (DataCell cell in row.cells) {
+        String? cellContent = (cell.child as Text).data;
+        dataAsStringList.add(cellContent!);
+      }
+    }
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('loggingData', dataAsStringList);
+  }
+
+  Future<void> getSavedLogs() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? dataAsStringList = prefs.getStringList('loggingData');
+
+    if (dataAsStringList != null) {
+      List<DataRow> savedRows = [];
+
+      for (int i = 0; i < dataAsStringList.length; i += 3) {
+        if (i + 2 < dataAsStringList.length) {
+          DataRow newRow = DataRow(cells: [
+            DataCell(Text(dataAsStringList[i])),
+            DataCell(Text(dataAsStringList[i + 1])),
+            DataCell(Text(dataAsStringList[i + 2])),
+          ]);
+
+          savedRows.add(newRow);
+        }
+      }
+      loggingData = DataTable(
+        columns: loggingData.columns,
+        rows: savedRows,
+      );
+    }
+  }
+
+  String addZeroToString(int digit, bool minute) {
+    if (minute) {
+      if (digit < 10)
+        return '0${digit}';
+      else
+        return '${digit}';
+    } else {
+      if (digit < 10)
+        return '0${digit}';
+      else
+        return '${digit}';
+    }
+  }
+
+  bool _isKeySecure(String key) {
+    final entropy = _isKeyRandom(key);
+    if (key.isNotEmpty &&
+        key.length >= 32 &&
+        entropy > 4 &&
+        !commonDictionary.containsKey(key)) {
+      return true;
+    }
+    return false;
   }
 }
 
-bool _isKeySecure(String key) {
-  final minKeyLength = 32;
-
-  if (key.length >= minKeyLength && _isKeyRandom(key)) {
-    return true;
-  }
-  return false;
-}
-
-bool _isKeyRandom(String key) {
+double _isKeyRandom(String key) {
   Map<String, int> map = {};
 
   for (int i = 0; i < key.length; i++) {
@@ -180,8 +290,69 @@ bool _isKeyRandom(String key) {
     double frequency = value / len;
     entropy -= frequency * (log(frequency) / log(2));
   });
+  return entropy;
+}
 
-  bool result = entropy >= 4 ? true : false;
+enum CustomPassStrength implements PasswordStrengthItem {
+  weak,
+  medium,
+  strong;
 
-  return result;
+  @override
+  Color get statusColor {
+    switch (this) {
+      case CustomPassStrength.weak:
+        return Colors.red;
+      case CustomPassStrength.medium:
+        return Colors.orange;
+      case CustomPassStrength.strong:
+        return Colors.green;
+    }
+  }
+
+  @override
+  Widget? get statusWidget {
+    switch (this) {
+      case CustomPassStrength.weak:
+        return const Text('Weak');
+      case CustomPassStrength.medium:
+        return const Text('Medium');
+      case CustomPassStrength.strong:
+        return const Text('Strong');
+      default:
+        return null;
+    }
+  }
+
+  @override
+  double get widthPerc {
+    switch (this) {
+      case CustomPassStrength.weak:
+        return 0.25;
+      case CustomPassStrength.medium:
+        return 0.5;
+      case CustomPassStrength.strong:
+        return 1;
+      default:
+        return 0.0;
+    }
+  }
+
+  static CustomPassStrength? calculate({required String text}) {
+    final entropy = _isKeyRandom(text);
+
+    if (text.isNotEmpty &&
+        !commonDictionary.containsKey(text) &&
+        text.length > 32 &&
+        entropy > 4) {
+      return CustomPassStrength.strong;
+    } else if (text.isNotEmpty &&
+        !commonDictionary.containsKey(text) &&
+        text.length > 16 &&
+        entropy > 3) {
+      return CustomPassStrength.medium;
+    } else {
+      return CustomPassStrength.weak;
+    }
+  }
 }

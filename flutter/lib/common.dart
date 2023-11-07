@@ -169,8 +169,8 @@ void msgBox(String type, String title, String text, SecurityProvider pro,
       SmartDialog.dismiss();
       backToHome();
       // Die Session Length adden falls req eingestellt
-      // TODO: && pro.inSession
       if (pro.fourthSecReq) {
+        pro.changeInSession(false);
         pro.addSessionLength();
       }
     })

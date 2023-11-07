@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/pages/chat_page.dart';
 import 'package:flutter_hbb/pages/security_page.dart';
@@ -91,7 +93,10 @@ class WebHomePage extends StatelessWidget {
     final provider = Provider.of<SecurityProvider>(context, listen: false);
     provider.requirementsCheck();
 
-    //Timer.periodic(Duration(seconds : 1), (timer) {});
+    //Dieser isOverAllSecurityCheck Timer Check ist ein Workaroud und verhindert EXCEPTION durch notifyListeners
+    Timer.periodic(Duration(milliseconds: 250), (timer) {
+      provider.isOverAllSecurityCheck();
+    });
 
     combinedActions.addAll(securityPage.appBarActions);
     combinedActions.add(SizedBox(width: 16));

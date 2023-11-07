@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/models/model.dart';
 import 'package:provider/provider.dart';
+import 'package:password_strength_checker/password_strength_checker.dart';
 
 import '../models/security_model.dart';
 
@@ -173,10 +174,10 @@ class SecMenuState extends State<SecMenu> {
             showSecFour(provider.fourthSecReq);
           }
           if (value == 'sec5') {
-            debugPrint(value);
+            showSecFive(provider.fifthSecReq);
           }
           if (value == 'sec6') {
-            debugPrint(value);
+            showSecSix(provider.sixthSecReq);
           }
           if (value == 'sec7') {
             showSecSeven(provider.seventhSecReq);
@@ -186,6 +187,9 @@ class SecMenuState extends State<SecMenu> {
 
   void showSecTwo(bool second) {
     final key = FFI.getByName('option', 'key');
+    final passNotifier = ValueNotifier<CustomPassStrength?>(null);
+    final passSecValue = CustomPassStrength.calculate(text: key);
+    passNotifier.value = passSecValue;
 
     DialogManager.show((setState, close) {
       return CustomAlertDialog(
@@ -194,7 +198,20 @@ class SecMenuState extends State<SecMenu> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Text('Sichere Verschlüsselungsverfahren'),
+                Expanded(
+                  child: Text('Sichere Verschlüsselungsverfahren',
+                      textAlign: TextAlign.start),
+                ),
+                InkWell(
+                  onTap: () {
+                    _showInfoBox(2);
+                  },
+                  child: Icon(
+                    Icons
+                        .question_mark, // Verwende ein anderes Icon deiner Wahl
+                  ),
+                ),
+                SizedBox(width: 10),
                 Icon(
                   Icons.circle,
                   color: second ? greenColor : redColor,
@@ -208,16 +225,68 @@ class SecMenuState extends State<SecMenu> {
           ],
         ),
         content: Wrap(direction: Axis.vertical, spacing: 12, children: [
-          Text('Eingegebener Key:\n$key'),
-          InkWell(
-              child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              'Sicherheitsanalyse:',
-            ),
-          )),
+          RichText(
+              text: TextSpan(
+                  style: TextStyle(
+                    fontSize: 16, // Hier können Sie die Schriftgröße anpassen
+                    height: 2, // Hier können Sie die Zeilenhöhe anpassen
+                  ),
+                  children: <InlineSpan>[
+                TextSpan(
+                  text: 'Eingegebener Key:\n',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextSpan(
+                  text: '$key',
+                ),
+                TextSpan(
+                  text: '\nSicherheitsanalyse:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextSpan(
+                  text:
+                      '\n-- Hier muss noch eine Erklärung der Encryption Methode hin --',
+                ),
+                TextSpan(
+                  text: '\nGrün',
+                  style: TextStyle(
+                    color: Colors.green,
+                  ),
+                ),
+                TextSpan(
+                  text:
+                      ': 1. Key nicht leer 2. Über 32 Zeichen lang. 3. Entropie über vier. 4. Nicht im commonDictionary',
+                ),
+                TextSpan(
+                  text: '\nOrange',
+                  style: TextStyle(
+                    color: Colors.orange,
+                  ),
+                ),
+                TextSpan(
+                  text:
+                      ': 1. Key nicht leer 2. Über 16 Zeichen lang. 3. Entropie über drei. 4. Nicht im commonDictionary',
+                ),
+                TextSpan(
+                  text: '\nRot',
+                  style: TextStyle(
+                    color: Colors.red,
+                  ),
+                ),
+                TextSpan(
+                  text: ': Eins der 4 Kriterien nicht bestanden',
+                ),
+              ])),
         ]),
-        actions: [],
+        actions: [
+          PasswordStrengthChecker(
+            strength: passNotifier,
+          ),
+        ],
       );
     }, clickMaskDismiss: true, backDismiss: true);
   }
@@ -232,7 +301,29 @@ class SecMenuState extends State<SecMenu> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Text('Logging der Sitzung'),
+                Expanded(
+                    child: Text('Logging der Sitzung',
+                        textAlign: TextAlign.start)),
+                InkWell(
+                  onTap: () {
+                    provider.inSession = false;
+                  },
+                  child: Icon(
+                    Icons
+                        .replay_outlined, // Verwende ein anderes Icon deiner Wahl
+                  ),
+                ),
+                SizedBox(width: 10),
+                InkWell(
+                  onTap: () {
+                    _showInfoBox(4);
+                  },
+                  child: Icon(
+                    Icons
+                        .question_mark, // Verwende ein anderes Icon deiner Wahl
+                  ),
+                ),
+                SizedBox(width: 10),
                 Icon(
                   Icons.circle,
                   color: four ? greenColor : redColor,
@@ -247,6 +338,11 @@ class SecMenuState extends State<SecMenu> {
         ),
         content: Column(
           children: [
+            provider.inSession
+                ? Text('In einer Session nicht resetten',
+                    style: TextStyle(color: Colors.red),
+                    textAlign: TextAlign.start)
+                : SizedBox(),
             Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
@@ -256,15 +352,140 @@ class SecMenuState extends State<SecMenu> {
                     value: four,
                     activeColor: Colors.grey,
                     onChanged: (bool? newValue) {
-                      setState(() {
-                        four = newValue!;
+                      if (!provider.inSession) {
+                        setState(() {
+                          four = newValue!;
+                        });
                         // Security Model Change -> secondSecReq change
-                        provider.changeFourthSecReq();
-                      });
+                        provider.changeFourthSecReq(newValue!);
+                      }
                     },
-                  )
+                  ),
                 ]),
             SingleChildScrollView(child: provider.loggingData),
+          ],
+        ),
+        actions: [],
+      );
+    }, clickMaskDismiss: true, backDismiss: true);
+  }
+
+  void showSecFive(bool five) {
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
+
+    DialogManager.show((setState, close) {
+      return CustomAlertDialog(
+        title: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Expanded(
+                    child: Text('Unterbrechung bei Inaktivität',
+                        textAlign: TextAlign.start)),
+                InkWell(
+                  onTap: () {
+                    _showInfoBox(5);
+                  },
+                  child: Icon(
+                    Icons
+                        .question_mark, // Verwende ein anderes Icon deiner Wahl
+                  ),
+                ),
+                SizedBox(width: 10),
+                Icon(
+                  Icons.circle,
+                  color: five ? greenColor : redColor,
+                ), // Text
+              ],
+            ),
+            Divider(
+              color: Colors.black,
+              thickness: 0.5,
+            ),
+          ],
+        ),
+        content: Column(
+          children: [
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text(
+                      'Wollen Sie die Fernwartung bei Inaktivität unterbrechen?'),
+                  Switch(
+                    // This bool value toggles the switch.
+                    value: five,
+                    activeColor: Colors.grey,
+                    onChanged: (bool? newValue) {
+                      setState(() {
+                        five = newValue!;
+                      });
+                      // Security Model Change -> secondSecReq change
+                      provider.changeFifthSecReq(newValue!);
+                    },
+                  ),
+                ]),
+          ],
+        ),
+        actions: [],
+      );
+    }, clickMaskDismiss: true, backDismiss: true);
+  }
+
+  void showSecSix(bool six) {
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
+
+    DialogManager.show((setState, close) {
+      return CustomAlertDialog(
+        title: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Expanded(
+                    child: Text('Bildschirmaufzeichnung',
+                        textAlign: TextAlign.start)),
+                InkWell(
+                  onTap: () {
+                    _showInfoBox(6);
+                  },
+                  child: Icon(
+                    Icons
+                        .question_mark, // Verwende ein anderes Icon deiner Wahl
+                  ),
+                ),
+                SizedBox(width: 10),
+                Icon(
+                  Icons.circle,
+                  color: six ? greenColor : redColor,
+                ), // Text
+              ],
+            ),
+            Divider(
+              color: Colors.black,
+              thickness: 0.5,
+            ),
+          ],
+        ),
+        content: Column(
+          children: [
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text('Wollen Sie die Fernwartung aufzeichnen?'),
+                  Switch(
+                    // This bool value toggles the switch.
+                    value: six,
+                    activeColor: Colors.grey,
+                    onChanged: (bool? newValue) {
+                      setState(() {
+                        six = newValue!;
+                      });
+                      // Security Model Change -> secondSecReq change
+                      provider.changeSixthSecReq(newValue!);
+                    },
+                  ),
+                ]),
           ],
         ),
         actions: [],
@@ -280,7 +501,19 @@ class SecMenuState extends State<SecMenu> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Text('Regelmäßige Updates'),
+                Expanded(
+                    child: Text('Regelmäßige Updates',
+                        textAlign: TextAlign.start)),
+                InkWell(
+                  onTap: () {
+                    _showInfoBox(7);
+                  },
+                  child: Icon(
+                    Icons
+                        .question_mark, // Verwende ein anderes Icon deiner Wahl
+                  ),
+                ),
+                SizedBox(width: 10),
                 Icon(
                   Icons.circle,
                   color: seven ? greenColor : redColor,
@@ -312,5 +545,43 @@ class SecMenuState extends State<SecMenu> {
         actions: [],
       );
     }, clickMaskDismiss: true, backDismiss: true);
+  }
+
+  void _showInfoBox(int sec) {
+    String title;
+    String content;
+    if (sec == 1) {
+      title = 'Anforderung: Protokolle';
+      content = 'Hier ist der Inhalt für Anforderung $sec.';
+    } else if (sec == 2) {
+      title = 'Anforderung: Verschlüsslung';
+      content = 'Hier ist der Inhalt für Anforderung $sec.';
+    } else if (sec == 3) {
+      title = 'Anforderung: Netz';
+      content = 'Hier ist der Inhalt für Anforderung $sec.';
+    } else if (sec == 4) {
+      title = 'Anforderung: Logging';
+      content = 'Hier ist der Inhalt für Anforderung $sec.';
+    } else if (sec == 5) {
+      title = 'Anforderung: Inaktivität';
+      content = 'Hier ist der Inhalt für Anforderung $sec.';
+    } else if (sec == 6) {
+      title = 'Anforderung: Aufzeichnung';
+      content = 'Hier ist der Inhalt für Anforderung $sec.';
+    } else {
+      title = 'Anforderung: Updates';
+      content = 'Hier ist der Inhalt für Anforderung $sec.';
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: <Widget>[],
+        );
+      },
+    );
   }
 }
