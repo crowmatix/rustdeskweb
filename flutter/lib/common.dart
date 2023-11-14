@@ -166,13 +166,13 @@ void msgBox(String type, String title, String text, SecurityProvider pro,
   SmartDialog.dismiss();
   final buttons = [
     wrap(Translator.call('OK'), () {
-      SmartDialog.dismiss();
-      backToHome();
+      pro.changeInSession(false);
       // Die Session Length adden falls req eingestellt
       if (pro.fourthSecReq) {
-        pro.changeInSession(false);
         pro.addSessionLength();
       }
+      SmartDialog.dismiss();
+      backToHome();
     })
   ];
   if (hasCancel == null) {

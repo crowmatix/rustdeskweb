@@ -1,4 +1,7 @@
 import 'dart:math';
+import 'dart:html';
+import 'dart:js';
+import 'dart:js_util' as js_util;
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/models/model.dart';
@@ -21,6 +24,8 @@ class SecurityProvider extends ChangeNotifier {
   late DataTable loggingData = createDataTable();
   late DateTime sessionStartTime;
 
+  late int inactiveTime;
+
   SecurityProvider({
     this.firstSecReq = false,
     this.secondSecReq = false,
@@ -32,12 +37,21 @@ class SecurityProvider extends ChangeNotifier {
     this.overallSecurity = false,
   });
 
+  Future<void> startCapture() async {
+    context.callMethod('startCapture');
+  }
+
+  Future<void> stopCapture() async {
+    context.callMethod('stopCapture');
+  }
+
   Future<void> requirementsCheck() async {
     isSecTwoCheck();
+    //isSecThreeCheck();
     await isSecFourCheck();
-    isSecSevenCheck();
     await isSecFiveCheck();
     await isSecSixCheck();
+    isSecSevenCheck();
 
     isOverAllSecurityCheck();
   }
@@ -51,6 +65,8 @@ class SecurityProvider extends ChangeNotifier {
       changeSecondSecReq(true);
     }
   }
+
+  //Future<void> isSecThreeCheck() async {}
 
   Future<void> isSecFourCheck() async {
     // PERSISTENTE SPEICHERUNG checken und ggf ändern
@@ -68,6 +84,13 @@ class SecurityProvider extends ChangeNotifier {
     bool? reqFive = prefs.getBool('reqFive');
     if (reqFive != null) {
       fifthSecReq = reqFive;
+    }
+
+    int? savedInactiveTime = prefs.getInt('inactive');
+    if (savedInactiveTime != null) {
+      inactiveTime = savedInactiveTime;
+    } else {
+      inactiveTime = 60;
     }
   }
 
@@ -132,6 +155,12 @@ class SecurityProvider extends ChangeNotifier {
 
   void changeInSession(bool b) {
     inSession = b;
+  }
+
+  Future<void> changeInactiveTime(int s) async {
+    inactiveTime = s;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setInt('inactive', s);
   }
 
   DataTable createDataTable() {

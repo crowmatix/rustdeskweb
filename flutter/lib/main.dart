@@ -54,7 +54,7 @@ class App extends StatelessWidget {
                 },
               );
             }
-            return null; // TEST
+            return null;
           },
           navigatorKey: globalKey,
           debugShowCheckedModeBanner: false,

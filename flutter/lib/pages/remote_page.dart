@@ -46,7 +46,11 @@ class _RemotePageState extends State<RemotePage> {
   var _isPhysicalMouse = false;
 
   //Countdown
-  int timeLeft = 30;
+  late final Timer _inactive;
+  late int timeLeft;
+  late int savedInactiveTime;
+
+  late bool secFiveReq;
 
   @override
   void initState() {
@@ -63,17 +67,21 @@ class _RemotePageState extends State<RemotePage> {
     FFI.ffiModel.updateEventListener(widget.id, widget.pw);
     FFI.listenToMouse(true);
 
-    // Wenn man den connect Button drückt, wird geloggt
-    //(falls secReq true) egal ob Versuch erfolgreich oder nicht
+    //Provider zum Check
     final provider = Provider.of<SecurityProvider>(context, listen: false);
+    // Es wird geloggt, wenn Anforderung 4 true
+    provider.changeInSession(true);
     if (provider.fourthSecReq) {
       provider.addInitalRow(widget.id);
-      // Eig nur wenn Verbindung erfolgreiche ist
-      provider.inSession = true;
     }
     if (provider.fifthSecReq) {
+      secFiveReq = true;
+      savedInactiveTime = provider.inactiveTime;
+      timeLeft = savedInactiveTime;
       // Time Controller fuer Inactivecheck
-      //_startCountDown();
+      _startCountDown();
+    } else {
+      secFiveReq = false;
     }
   }
 
@@ -92,17 +100,30 @@ class _RemotePageState extends State<RemotePage> {
         overlays: SystemUiOverlay.values);
     Wakelock.disable();
 
+    if (secFiveReq) {
+      _inactive.cancel();
+    }
+    //_ticker.dispose();
     super.dispose();
   }
 
   void _startCountDown() {
-    Timer.periodic(Duration(seconds: 1), (timer) {
+    _inactive = Timer.periodic(Duration(seconds: 1), (_) {
       if (timeLeft > 0) {
-        setState(() {
-          timeLeft--;
-        });
+        if (mounted) {
+          setState(() {
+            timeLeft--;
+          });
+        }
       } else {
-        timer.cancel();
+        // Add Session Length
+        final provider = Provider.of<SecurityProvider>(context, listen: false);
+        if (provider.fourthSecReq) {
+          provider.addSessionLength();
+        }
+        provider.changeInSession(false);
+        _inactive.cancel();
+        backToHome();
       }
     });
   }
@@ -326,7 +347,9 @@ class _RemotePageState extends State<RemotePage> {
           if (_isPhysicalMouse) {
             FFI.handleMouse(getEvent(e, 'mousemove'));
             //TIMER RESET
-            // _timeController.restart();
+            if (secFiveReq) {
+              timeLeft = savedInactiveTime;
+            }
           }
         },
         onPointerDown: (e) {
@@ -505,7 +528,7 @@ class _RemotePageState extends State<RemotePage> {
                   [
                     provider.fifthSecReq
                         ? Text(
-                            timeLeft.toString(),
+                            "$timeLeft sek",
                             style: TextStyle(color: Colors.white, fontSize: 14),
                           )
                         : SizedBox(),

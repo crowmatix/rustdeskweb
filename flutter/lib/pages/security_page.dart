@@ -3,7 +3,6 @@ import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/models/model.dart';
 import 'package:provider/provider.dart';
 import 'package:password_strength_checker/password_strength_checker.dart';
-
 import '../models/security_model.dart';
 
 //PLATZHALTER
@@ -35,6 +34,10 @@ class SecMenu extends StatefulWidget {
 class SecMenuState extends State<SecMenu> {
   final redColor = Color.fromARGB(255, 247, 83, 72);
   final greenColor = Color.fromARGB(255, 128, 240, 113);
+
+  final TextEditingController _textEditingController = TextEditingController();
+
+  //bool recording = false;
 
   @override
   void initState() {
@@ -306,7 +309,9 @@ class SecMenuState extends State<SecMenu> {
                         textAlign: TextAlign.start)),
                 InkWell(
                   onTap: () {
-                    provider.inSession = false;
+                    setState(() {
+                      provider.inSession = false;
+                    });
                   },
                   child: Icon(
                     Icons
@@ -372,6 +377,7 @@ class SecMenuState extends State<SecMenu> {
 
   void showSecFive(bool five) {
     final provider = Provider.of<SecurityProvider>(context, listen: false);
+    _textEditingController.text = provider.inactiveTime.toString();
 
     DialogManager.show((setState, close) {
       return CustomAlertDialog(
@@ -417,14 +423,47 @@ class SecMenuState extends State<SecMenu> {
                     value: five,
                     activeColor: Colors.grey,
                     onChanged: (bool? newValue) {
-                      setState(() {
-                        five = newValue!;
-                      });
-                      // Security Model Change -> secondSecReq change
-                      provider.changeFifthSecReq(newValue!);
+                      //Wenn nicht in einer Session !
+                      if (!provider.inSession) {
+                        setState(() {
+                          five = newValue!;
+                        });
+                        // Security Model Change -> fifthSecReq change
+                        provider.changeFifthSecReq(newValue!);
+                      }
                     },
                   ),
                 ]),
+            provider.inSession
+                ? SizedBox()
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Wann soll die Sitzung abgebrochen werden?',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      Container(
+                        width: 50, // Setze hier die gewünschte Breite
+                        child: TextField(
+                          controller: _textEditingController,
+                          decoration: InputDecoration(
+                            labelText: 'sek',
+                          ),
+                          keyboardType: TextInputType.number,
+                          onChanged: (value) {
+                            try {
+                              int inactiveTimeInt = int.parse(value);
+                              provider.changeInactiveTime(inactiveTimeInt);
+                            } catch (e) {
+                              //debugPrint("Kein Int am Start");
+                              //Fehlermeldung anzeigen
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
           ],
         ),
         actions: [],
@@ -478,11 +517,16 @@ class SecMenuState extends State<SecMenu> {
                     value: six,
                     activeColor: Colors.grey,
                     onChanged: (bool? newValue) {
+                      if (newValue!) {
+                        provider.startCapture();
+                      } else {
+                        provider.stopCapture();
+                      }
                       setState(() {
-                        six = newValue!;
+                        six = newValue;
                       });
                       // Security Model Change -> secondSecReq change
-                      provider.changeSixthSecReq(newValue!);
+                      provider.changeSixthSecReq(newValue);
                     },
                   ),
                 ]),

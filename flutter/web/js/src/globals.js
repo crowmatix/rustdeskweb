@@ -381,3 +381,51 @@ export function copyToClipboard(text) {
     }
   }
 }
+
+///////////////
+
+let recorder;
+let buffer = [];
+
+window.startCapture = () => {
+  navigator.mediaDevices.getDisplayMedia({ video: true }).then((stream) => {
+
+    recorder = new MediaRecorder(stream)
+
+    recorder.start()
+
+    recorder.addEventListener('dataavailable', (event) => {
+      if (event.data.size > 0) {
+        buffer.push(event.data);
+      }
+    })
+
+    recorder.addEventListener('stop', () => {
+
+      const now = new Date();
+      const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}-${now.getSeconds().toString().padStart(2, '0')}`;
+      const filename = `recording_${timestamp}.mp4`;
+
+      const blob = new Blob(buffer, {
+        type: 'video/mp4'
+      })
+
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+
+      a.download = filename;
+      a.click();
+
+      recorder = null;
+      buffer = [];
+    })
+  })
+}
+
+window.stopCapture = () => {
+  if (recorder) {
+    recorder.stop();
+  }
+};
+
+
