@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/pages/chat_page.dart';
 import 'package:flutter_hbb/pages/security_page.dart';
@@ -93,6 +94,12 @@ class WebHomePage extends StatelessWidget {
     final provider = Provider.of<SecurityProvider>(context, listen: false);
     provider.requirementsCheck();
 
+    var subscription = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult result) {
+      changeConStatus(provider, result);
+    });
+
     //Dieser isOverAllSecurityCheck Timer Check ist ein Workaroud und verhindert EXCEPTION durch notifyListeners
     Timer.periodic(Duration(milliseconds: 250), (timer) {
       provider.isOverAllSecurityCheck();
@@ -111,6 +118,25 @@ class WebHomePage extends StatelessWidget {
       ),
       body: connectionPage,
     );
+  }
+
+  void changeConStatus(SecurityProvider provider, ConnectivityResult result) {
+    if (result == ConnectivityResult.mobile) {
+      provider.network = "Mobile";
+      provider.thirdSecReq = true;
+    } else if (result == ConnectivityResult.wifi) {
+      provider.network = "Wi-Fi";
+    } else if (result == ConnectivityResult.ethernet) {
+      provider.network = "Ethernet";
+      provider.thirdSecReq = true;
+    } else if (result == ConnectivityResult.vpn) {
+      provider.network = "VPN";
+      provider.thirdSecReq = true;
+    } else if (result == ConnectivityResult.other) {
+      provider.network = "Other";
+    } else if (result == ConnectivityResult.none) {
+      provider.network = "None";
+    }
   }
 }
 

@@ -1,13 +1,14 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:html';
 import 'dart:js';
-import 'dart:js_util' as js_util;
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/models/model.dart';
 import 'package:flutter_hbb/pages/security_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:password_strength_checker/password_strength_checker.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class SecurityProvider extends ChangeNotifier {
   bool firstSecReq;
@@ -26,6 +27,9 @@ class SecurityProvider extends ChangeNotifier {
 
   late int inactiveTime;
 
+  late String protocol;
+  late String network;
+
   SecurityProvider({
     this.firstSecReq = false,
     this.secondSecReq = false,
@@ -37,23 +41,37 @@ class SecurityProvider extends ChangeNotifier {
     this.overallSecurity = false,
   });
 
-  Future<void> startCapture() async {
+  void startCapture() {
     context.callMethod('startCapture');
   }
 
-  Future<void> stopCapture() async {
+  void stopCapture() {
     context.callMethod('stopCapture');
   }
 
   Future<void> requirementsCheck() async {
+    isSeOneCheck();
     isSecTwoCheck();
-    //isSecThreeCheck();
+    isSecThreeCheck();
     await isSecFourCheck();
     await isSecFiveCheck();
     await isSecSixCheck();
     isSecSevenCheck();
 
     isOverAllSecurityCheck();
+  }
+
+  Future<void> isSeOneCheck() async {
+    var jsonProtocols = await context.callMethod('checkProtocols');
+
+    Map<String, dynamic> protocolMap = json.decode(jsonProtocols);
+    String protocolValue = protocolMap['protocol'];
+    protocol = protocolValue;
+
+    if (protocolValue == "https") {
+      firstSecReq = true;
+      // Persistent speichern
+    }
   }
 
   void isSecTwoCheck() {
@@ -66,7 +84,30 @@ class SecurityProvider extends ChangeNotifier {
     }
   }
 
-  //Future<void> isSecThreeCheck() async {}
+  Future<void> isSecThreeCheck() async {
+    //var jsonNetwork = await context.callMethod('checkNetwork');
+    //Map<String, dynamic> networkMap = json.decode(jsonNetwork);
+    //String networkValue = networkMap['network'];
+    // Ergibt leider "No Network Connection"
+
+    final connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.mobile) {
+      network = "Mobile";
+      thirdSecReq = true;
+    } else if (connectivityResult == ConnectivityResult.wifi) {
+      network = "Wi-Fi";
+    } else if (connectivityResult == ConnectivityResult.ethernet) {
+      network = "Ethernet";
+      thirdSecReq = true;
+    } else if (connectivityResult == ConnectivityResult.vpn) {
+      network = "VPN";
+      thirdSecReq = true;
+    } else if (connectivityResult == ConnectivityResult.other) {
+      network = "Other";
+    } else if (connectivityResult == ConnectivityResult.none) {
+      network = "None";
+    }
+  }
 
   Future<void> isSecFourCheck() async {
     // PERSISTENTE SPEICHERUNG checken und ggf ändern

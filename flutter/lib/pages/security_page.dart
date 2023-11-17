@@ -37,8 +37,6 @@ class SecMenuState extends State<SecMenu> {
 
   final TextEditingController _textEditingController = TextEditingController();
 
-  //bool recording = false;
-
   @override
   void initState() {
     super.initState();
@@ -61,7 +59,7 @@ class SecMenuState extends State<SecMenu> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Text('Sichere Protokolle'),
+                      Text('Protokolle'),
                       Icon(Icons.circle,
                           color: provider.firstSecReq
                               ? greenColor
@@ -76,8 +74,7 @@ class SecMenuState extends State<SecMenu> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Expanded(
-                          child: Text('Sichere Verschlüsselungsverfahren')),
+                      Expanded(child: Text('Verschlüsselungsverfahren')),
                       Icon(
                         Icons.circle,
                         color: provider.secondSecReq ? greenColor : redColor,
@@ -92,7 +89,7 @@ class SecMenuState extends State<SecMenu> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Text('Privates Netz'),
+                      Text('Netzwerkverbindung'),
                       Icon(
                         Icons.circle,
                         color: provider.thirdSecReq ? greenColor : redColor,
@@ -165,13 +162,13 @@ class SecMenuState extends State<SecMenu> {
         },
         onSelected: (value) {
           if (value == 'sec1') {
-            debugPrint(value);
+            showSecOne(provider.firstSecReq);
           }
           if (value == 'sec2') {
             showSecTwo(provider.secondSecReq);
           }
           if (value == 'sec3') {
-            debugPrint(value);
+            showSecThree(provider.thirdSecReq);
           }
           if (value == 'sec4') {
             showSecFour(provider.fourthSecReq);
@@ -188,6 +185,56 @@ class SecMenuState extends State<SecMenu> {
         });
   }
 
+  void showSecOne(bool one) {
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
+
+    DialogManager.show((setState, close) {
+      return CustomAlertDialog(
+        title: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Expanded(child: Text('Protokolle', textAlign: TextAlign.start)),
+                InkWell(
+                  onTap: () {
+                    _showInfoBox(1);
+                  },
+                  child: Icon(
+                    Icons
+                        .question_mark, // Verwende ein anderes Icon deiner Wahl
+                  ),
+                ),
+                SizedBox(width: 10),
+                Icon(
+                  Icons.circle,
+                  color: one ? greenColor : redColor,
+                ), // Text
+              ],
+            ),
+            Divider(
+              color: Colors.black,
+              thickness: 0.5,
+            ),
+          ],
+        ),
+        content: Wrap(direction: Axis.vertical, spacing: 12, children: [
+          Text('Die Prüfung hat ergeben:'),
+          Container(
+            color: provider.protocol == "https" ? greenColor : redColor,
+            child: Text(
+              provider.protocol == "https"
+                  ? 'Es wird HTTPS als Protokoll benutzt'
+                  : 'Es wird nur HTTP als Protokoll benutzt',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ]),
+        actions: [],
+      );
+    }, clickMaskDismiss: true, backDismiss: true);
+  }
+
   void showSecTwo(bool second) {
     final key = FFI.getByName('option', 'key');
     final passNotifier = ValueNotifier<CustomPassStrength?>(null);
@@ -202,7 +249,7 @@ class SecMenuState extends State<SecMenu> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Expanded(
-                  child: Text('Sichere Verschlüsselungsverfahren',
+                  child: Text('Verschlüsselungsverfahren',
                       textAlign: TextAlign.start),
                 ),
                 InkWell(
@@ -262,7 +309,7 @@ class SecMenuState extends State<SecMenu> {
                 ),
                 TextSpan(
                   text:
-                      ': 1. Key nicht leer 2. Über 32 Zeichen lang. 3. Entropie über vier. 4. Nicht im commonDictionary',
+                      ': 1. Key vorhanden 2. Über 32 Zeichen lang. 3. Entropie über vier. 4. Nicht im commonDictionary',
                 ),
                 TextSpan(
                   text: '\nOrange',
@@ -272,7 +319,7 @@ class SecMenuState extends State<SecMenu> {
                 ),
                 TextSpan(
                   text:
-                      ': 1. Key nicht leer 2. Über 16 Zeichen lang. 3. Entropie über drei. 4. Nicht im commonDictionary',
+                      ': 1. Key vorhanden 2. Über 16 Zeichen lang. 3. Entropie über drei. 4. Nicht im commonDictionary',
                 ),
                 TextSpan(
                   text: '\nRot',
@@ -290,6 +337,58 @@ class SecMenuState extends State<SecMenu> {
             strength: passNotifier,
           ),
         ],
+      );
+    }, clickMaskDismiss: true, backDismiss: true);
+  }
+
+  void showSecThree(bool three) {
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
+
+    DialogManager.show((setState, close) {
+      return CustomAlertDialog(
+        title: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Expanded(
+                    child:
+                        Text('Netzwerkverbindung', textAlign: TextAlign.start)),
+                InkWell(
+                  onTap: () {
+                    _showInfoBox(3);
+                  },
+                  child: Icon(
+                    Icons
+                        .question_mark, // Verwende ein anderes Icon deiner Wahl
+                  ),
+                ),
+                SizedBox(width: 10),
+                Icon(
+                  Icons.circle,
+                  color: three ? greenColor : redColor,
+                ), // Text
+              ],
+            ),
+            Divider(
+              color: Colors.black,
+              thickness: 0.5,
+            ),
+          ],
+        ),
+        content: Wrap(direction: Axis.vertical, spacing: 12, children: [
+          Text('Erkennung der Netzwerkkonnektivität:'),
+          SizedBox(
+            height: 5,
+          ),
+          buildInkWell('Mobile', provider.network),
+          buildInkWell('Wi-Fi', provider.network),
+          buildInkWell('Ethernet', provider.network),
+          buildInkWell('VPN', provider.network),
+          buildInkWell('Other', provider.network),
+          buildInkWell('None', provider.network),
+        ]),
+        actions: [],
       );
     }, clickMaskDismiss: true, backDismiss: true);
   }
@@ -511,7 +610,7 @@ class SecMenuState extends State<SecMenu> {
             Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Text('Wollen Sie die Fernwartung aufzeichnen?'),
+                  Text('Aufnahme des Bildschirms starten?'),
                   Switch(
                     // This bool value toggles the switch.
                     value: six,
@@ -525,7 +624,7 @@ class SecMenuState extends State<SecMenu> {
                       setState(() {
                         six = newValue;
                       });
-                      // Security Model Change -> secondSecReq change
+                      // Security Model Change -> SixSecReq change
                       provider.changeSixthSecReq(newValue);
                     },
                   ),
@@ -573,7 +672,7 @@ class SecMenuState extends State<SecMenu> {
         content: Wrap(direction: Axis.vertical, spacing: 12, children: [
           Text('Aktuelle Version: $version'),
           InkWell(
-              onTap: () async {
+              onTap: () {
                 if (version != newestWebVersion) {
                   // UPDATE Möglichkeit
                   debugPrint("z.B. auf Seite weiterleiten");
@@ -591,6 +690,18 @@ class SecMenuState extends State<SecMenu> {
     }, clickMaskDismiss: true, backDismiss: true);
   }
 
+  Widget buildInkWell(String text, String networkType) {
+    return InkWell(
+      child: Row(
+        children: [
+          Text(text),
+          SizedBox(width: 40),
+          if (text == networkType) Icon(Icons.check),
+        ],
+      ),
+    );
+  }
+
   void _showInfoBox(int sec) {
     String title;
     String content;
@@ -598,10 +709,10 @@ class SecMenuState extends State<SecMenu> {
       title = 'Anforderung: Protokolle';
       content = 'Hier ist der Inhalt für Anforderung $sec.';
     } else if (sec == 2) {
-      title = 'Anforderung: Verschlüsslung';
+      title = 'Anforderung: Verschlüsselung';
       content = 'Hier ist der Inhalt für Anforderung $sec.';
     } else if (sec == 3) {
-      title = 'Anforderung: Netz';
+      title = 'Anforderung: Netzwerkverbindung';
       content = 'Hier ist der Inhalt für Anforderung $sec.';
     } else if (sec == 4) {
       title = 'Anforderung: Logging';

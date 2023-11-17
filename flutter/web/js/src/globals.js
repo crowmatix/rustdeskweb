@@ -402,19 +402,24 @@ window.startCapture = () => {
 
     recorder.addEventListener('stop', () => {
 
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+
       const now = new Date();
-      const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}-${now.getSeconds().toString().padStart(2, '0')}`;
+      const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}'${now.getMinutes().toString().padStart(2, '0')}'${now.getSeconds().toString().padStart(2, '0')}`;
       const filename = `recording_${timestamp}.mp4`;
 
       const blob = new Blob(buffer, {
         type: 'video/mp4'
       })
-
-      const a = document.createElement('a')
-      a.href = URL.createObjectURL(blob)
-
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      document.body.appendChild(a);
+      a.style = "display: none";
+      a.href = url;
       a.download = filename;
       a.click();
+      window.URL.revokeObjectURL(url);
 
       recorder = null;
       buffer = [];
@@ -427,5 +432,37 @@ window.stopCapture = () => {
     recorder.stop();
   }
 };
+
+window.checkProtocols = () => {
+
+  // Überprüfe, ob die Seite über HTTPS geladen wird
+  var protocol = window.location.protocol;
+
+  // Konvertiere den Protokollwert in einen JSON-String
+  var jsonProtocol = JSON.stringify({ 'protocol': protocol });
+
+  return jsonProtocol;
+}
+
+window.checkNetwork = () => {
+
+  // Überprüfe, um was für ein  Netzwerk es sich handelt
+  var networkState = navigator.connection.type;
+  var states = {};
+
+  states[Connection.UNKNOWN] = 'Unknown connection';
+  states[Connection.ETHERNET] = 'Ethernet connection';
+  states[Connection.WIFI] = 'WiFi connection';
+  states[Connection.CELL_2G] = 'Cell 2G connection';
+  states[Connection.CELL_3G] = 'Cell 3G connection';
+  states[Connection.CELL_4G] = 'Cell 4G connection';
+  states[Connection.CELL] = 'Cell generic connection';
+  states[Connection.NONE] = 'No network connection';
+
+  var jsonNetwork = JSON.stringify({ 'network': states[networkState] });
+
+  return jsonNetwork;
+}
+
 
 
