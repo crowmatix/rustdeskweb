@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:js';
+import 'dart:typed_data';
+import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/models/model.dart';
@@ -8,6 +10,7 @@ import 'package:flutter_hbb/pages/security_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:password_strength_checker/password_strength_checker.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:html' as html;
 
 class SecurityProvider extends ChangeNotifier {
   bool firstSecReq;
@@ -347,6 +350,48 @@ class SecurityProvider extends ChangeNotifier {
       return true;
     }
     return false;
+  }
+
+  Future<void> convertToCSV() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? dataAsStringList = prefs.getStringList('loggingData');
+
+    if (dataAsStringList != null) {
+      // Saved ListStrings to CSV Data
+      List<List<dynamic>> csvData = [];
+
+      for (int i = 0; i < dataAsStringList.length; i += 3) {
+        if (i + 2 < dataAsStringList.length) {
+          csvData.add([
+            dataAsStringList[i],
+            dataAsStringList[i + 1],
+            dataAsStringList[i + 2],
+          ]);
+        }
+      }
+
+      //CSV Data to one only String
+      final csvString =
+          const ListToCsvConverter(fieldDelimiter: ';').convert(csvData);
+
+      // Create Blob for download
+      final blob = html.Blob([Uint8List.fromList(csvString.codeUnits)]);
+
+      // // Create Object URL from Blob
+      final url = html.Url.createObjectUrlFromBlob(blob);
+
+      // Create anchor element for download and start
+      final timeNow = DateTime.now();
+      final timeString = timeNow.toString();
+
+      final anchor = html.AnchorElement(href: url)
+        ..target = 'blank'
+        ..download = 'loggingData_$timeString.csv'
+        ..click();
+
+      // Revoke Object URL to free up resources
+      html.Url.revokeObjectUrl(url);
+    }
   }
 }
 

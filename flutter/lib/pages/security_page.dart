@@ -402,16 +402,24 @@ class SecMenuState extends State<SecMenu> with TickerProviderStateMixin {
                     child: Text('Logging der Sitzung',
                         textAlign: TextAlign.start)),
                 InkWell(
-                  onTap: () {
-                    setState(() {
-                      provider.inSession = false;
-                    });
-                  },
-                  child: Icon(
-                    Icons
-                        .replay_outlined, // Verwende ein anderes Icon deiner Wahl
-                  ),
-                ),
+                    onTap: () {
+                      setState(() {
+                        provider.convertToCSV();
+                      });
+                    },
+                    child: Icon(
+                        Icons.save_alt // Verwende ein anderes Icon deiner Wahl
+                        )),
+                SizedBox(width: 10),
+                InkWell(
+                    onTap: () {
+                      setState(() {
+                        provider.inSession = false;
+                      });
+                    },
+                    child: Icon(Icons
+                            .replay_outlined // Verwende ein anderes Icon deiner Wahl
+                        )),
                 SizedBox(width: 10),
                 InkWell(
                   onTap: () {

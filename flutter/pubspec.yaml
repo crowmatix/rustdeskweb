@@ -59,6 +59,8 @@ dependencies:
   password_strength_checker: ^1.2.2
   timer_count_down: ^2.2.0
   connectivity_plus: ^5.0.1
+  csv: ^5.1.1
+  permission_handler: ^11.0.1
 
 dev_dependencies:
   flutter_launcher_icons: ^0.9.1
