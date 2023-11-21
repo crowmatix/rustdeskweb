@@ -3,6 +3,7 @@ import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/models/model.dart';
 import 'package:provider/provider.dart';
 import 'package:password_strength_checker/password_strength_checker.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/security_model.dart';
 
 //PLATZHALTER
@@ -31,7 +32,7 @@ class SecMenu extends StatefulWidget {
   State<SecMenu> createState() => SecMenuState();
 }
 
-class SecMenuState extends State<SecMenu> {
+class SecMenuState extends State<SecMenu> with TickerProviderStateMixin {
   final redColor = Color.fromARGB(255, 247, 83, 72);
   final greenColor = Color.fromARGB(255, 128, 240, 113);
 
@@ -40,6 +41,13 @@ class SecMenuState extends State<SecMenu> {
   @override
   void initState() {
     super.initState();
+
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
+    if (!provider.inSession) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showTabsDialog();
+      });
+    }
   }
 
   @override
@@ -212,16 +220,13 @@ class SecMenuState extends State<SecMenu> {
                 ), // Text
               ],
             ),
-            Divider(
-              color: Colors.black,
-              thickness: 0.5,
-            ),
+            Divider(color: Colors.black, thickness: 0.5),
           ],
         ),
         content: Wrap(direction: Axis.vertical, spacing: 12, children: [
           Text('Die Prüfung hat ergeben:'),
           Container(
-            color: provider.protocol == "https" ? greenColor : redColor,
+            color: provider.protocol == "https" ? Colors.green : Colors.red,
             child: Text(
               provider.protocol == "https"
                   ? 'Es wird HTTPS als Protokoll benutzt'
@@ -268,10 +273,7 @@ class SecMenuState extends State<SecMenu> {
                 ), // Text
               ],
             ),
-            Divider(
-              color: Colors.black,
-              thickness: 0.5,
-            ),
+            Divider(color: Colors.black, thickness: 0.5),
           ],
         ),
         content: Wrap(direction: Axis.vertical, spacing: 12, children: [
@@ -296,10 +298,6 @@ class SecMenuState extends State<SecMenu> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
-                ),
-                TextSpan(
-                  text:
-                      '\n-- Hier muss noch eine Erklärung der Encryption Methode hin --',
                 ),
                 TextSpan(
                   text: '\nGrün',
@@ -370,10 +368,7 @@ class SecMenuState extends State<SecMenu> {
                 ), // Text
               ],
             ),
-            Divider(
-              color: Colors.black,
-              thickness: 0.5,
-            ),
+            Divider(color: Colors.black, thickness: 0.5),
           ],
         ),
         content: Wrap(direction: Axis.vertical, spacing: 12, children: [
@@ -434,10 +429,7 @@ class SecMenuState extends State<SecMenu> {
                 ), // Text
               ],
             ),
-            Divider(
-              color: Colors.black,
-              thickness: 0.5,
-            ),
+            Divider(color: Colors.black, thickness: 0.5),
           ],
         ),
         content: Column(
@@ -483,31 +475,27 @@ class SecMenuState extends State<SecMenu> {
         title: Column(
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Expanded(
-                    child: Text('Unterbrechung bei Inaktivität',
-                        textAlign: TextAlign.start)),
-                InkWell(
-                  onTap: () {
-                    _showInfoBox(5);
-                  },
-                  child: Icon(
-                    Icons
-                        .question_mark, // Verwende ein anderes Icon deiner Wahl
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Expanded(
+                      child: Text('Unterbrechung bei Inaktivität',
+                          textAlign: TextAlign.start)),
+                  InkWell(
+                    onTap: () {
+                      _showInfoBox(5);
+                    },
+                    child: Icon(
+                      Icons
+                          .question_mark, // Verwende ein anderes Icon deiner Wahl
+                    ),
                   ),
-                ),
-                SizedBox(width: 10),
-                Icon(
-                  Icons.circle,
-                  color: five ? greenColor : redColor,
-                ), // Text
-              ],
-            ),
-            Divider(
-              color: Colors.black,
-              thickness: 0.5,
-            ),
+                  SizedBox(width: 10),
+                  Icon(
+                    Icons.circle,
+                    color: five ? greenColor : redColor,
+                  ), // Text
+                ]),
+            Divider(color: Colors.black, thickness: 0.5),
           ],
         ),
         content: Column(
@@ -599,10 +587,7 @@ class SecMenuState extends State<SecMenu> {
                 ), // Text
               ],
             ),
-            Divider(
-              color: Colors.black,
-              thickness: 0.5,
-            ),
+            Divider(color: Colors.black, thickness: 0.5),
           ],
         ),
         content: Column(
@@ -663,10 +648,7 @@ class SecMenuState extends State<SecMenu> {
                 ), // Text
               ],
             ),
-            Divider(
-              color: Colors.black,
-              thickness: 0.5,
-            ),
+            Divider(color: Colors.black, thickness: 0.5),
           ],
         ),
         content: Wrap(direction: Axis.vertical, spacing: 12, children: [
@@ -674,8 +656,7 @@ class SecMenuState extends State<SecMenu> {
           InkWell(
               onTap: () {
                 if (version != newestWebVersion) {
-                  // UPDATE Möglichkeit
-                  debugPrint("z.B. auf Seite weiterleiten");
+                  _launchURL();
                 }
               },
               child: Padding(
@@ -692,14 +673,11 @@ class SecMenuState extends State<SecMenu> {
 
   Widget buildInkWell(String text, String networkType) {
     return InkWell(
-      child: Row(
-        children: [
-          Text(text),
-          SizedBox(width: 40),
-          if (text == networkType) Icon(Icons.check),
-        ],
-      ),
-    );
+        child: Row(children: [
+      Text(text),
+      SizedBox(width: 40),
+      if (text == networkType) Icon(Icons.check),
+    ]));
   }
 
   void _showInfoBox(int sec) {
@@ -707,36 +685,233 @@ class SecMenuState extends State<SecMenu> {
     String content;
     if (sec == 1) {
       title = 'Anforderung: Protokolle';
-      content = 'Hier ist der Inhalt für Anforderung $sec.';
+      content =
+          'Schützen Sie Ihre Daten mit sicheren Protokollen. Der WebClient von RustDesk sollte im Normalfall HTTPS verwenden, um eine verschlüsselte Kommunikation zu gewährleisten. Vermeiden Sie die Verwendung von ungesicherten HTTP-Verbindungen für eine zuverlässige und sichere Interaktion bei Fernwartungen.';
     } else if (sec == 2) {
       title = 'Anforderung: Verschlüsselung';
-      content = 'Hier ist der Inhalt für Anforderung $sec.';
+      content =
+          'Schützen Sie Ihre Verbindung mit starken Verschlüsselungsverfahren. In RustDesk ist es möglich einen SSH-Key des Rust Desk Servers einzugeben, für eine sichere Kommunikation zwischen dem WebClient und dem RustDesk Server. Gewährleisten Sie so einen geschützten Datenaustausch.';
     } else if (sec == 3) {
       title = 'Anforderung: Netzwerkverbindung';
-      content = 'Hier ist der Inhalt für Anforderung $sec.';
+      content =
+          'Es wird die Art der Netzwerkverbindung identifiziert. RustDesk unterscheidet automatisch mobile (cellular), Ethernet und VPN-Verbindungen als sicher. Beachten Sie, dass Wi-Fi-Verbindungen generell als unsicher gelten, jedoch bei privaten Wi-Fi-Netzwerken sicher sein können. Optimieren Sie Ihre Einstellungen basierend auf dieser Unterscheidung für eine effiziente und sichere Fernwartung.';
     } else if (sec == 4) {
       title = 'Anforderung: Logging';
-      content = 'Hier ist der Inhalt für Anforderung $sec.';
+      content =
+          'Loggen Sie ausgehende Fernwartungsitzungen. RustDesk zeichnet die Uhrzeit, Sitzungsdauer und Geräteinformationen des Peers auf. Downloaden Sie Logs für eine umfassende Historie Ihrer Fernwartungssitzungen.';
     } else if (sec == 5) {
       title = 'Anforderung: Inaktivität';
-      content = 'Hier ist der Inhalt für Anforderung $sec.';
+      content =
+          'Verhindern Sie unbefugten Zugriff bei Inaktivität. RustDesk integriert einen Timer, der bei fehlenden Aktionen abläuft. So wird die Fernwartung sicher unterbrochen.';
     } else if (sec == 6) {
       title = 'Anforderung: Aufzeichnung';
-      content = 'Hier ist der Inhalt für Anforderung $sec.';
+      content =
+          'Erfassen Sie wichtige Momente Ihrer Fernwartung. RustDesk ermöglicht die Bildschirmaufzeichnung, die sicher im Browser gespeichert wird. Halten Sie wichtige Details für spätere Überprüfungen fest.';
     } else {
       title = 'Anforderung: Updates';
-      content = 'Hier ist der Inhalt für Anforderung $sec.';
+      content =
+          'Halten Sie Ihren WebClient auf dem neuesten Stand. RustDesk überprüft automatisch Versionen für Updates. Vergleichen Sie WebClient-Versionen, um von den neuesten Funktionen und Sicherheitsverbesserungen zu profitieren.';
     }
 
     showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(title),
+            content: Container(width: 100, child: Text(content)),
+            actions: <Widget>[],
+          );
+        });
+  }
+
+  void _showTabsDialog() {
+    showDialog(
       context: context,
-      builder: (context) {
+      builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(title),
-          content: Text(content),
-          actions: <Widget>[],
-        );
+            title: Row(children: [
+              Text('Sicherheitsanforderungen', textAlign: TextAlign.center),
+              SizedBox(width: 20),
+              Icon(
+                Icons.security,
+                color: Provider.of<SecurityProvider>(context).overallSecurity
+                    ? greenColor
+                    : redColor,
+              ),
+            ]),
+            content: Container(
+              width: double.maxFinite,
+              height: 350,
+              child: DefaultTabController(
+                length: 7,
+                child: Column(
+                  children: [
+                    Divider(color: Colors.black, thickness: 0.5),
+                    TabBar(
+                      labelColor: Colors.black, // Farbe für aktive Tabschrift
+                      unselectedLabelColor: Colors.grey,
+                      tabs: [
+                        Tab(text: 'Protokolle'),
+                        Tab(text: 'Verschlüsselung'),
+                        Tab(text: 'Netzwerkverbindung'),
+                        Tab(text: 'Logging'),
+                        Tab(text: 'Inaktivität'),
+                        Tab(text: 'Aufzeichnung'),
+                        Tab(text: 'Updates'),
+                      ],
+                    ),
+                    Divider(color: Colors.black, thickness: 0.5),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          buildDialogContentOne(),
+                          buildDialogContentTwo(),
+                          buildDialogContentThree(),
+                          buildDialogContentFour(),
+                          buildDialogContentFive(),
+                          buildDialogContentSix(),
+                          buildDialogContentSeven(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              Center(
+                  child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Schließen'),
+              )),
+            ]);
       },
     );
+  }
+
+  Widget buildDialogContentOne() {
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
+    return Column(children: [
+      SizedBox(height: 20),
+      Text(
+          'Schützen Sie Ihre Daten mit sicheren Protokollen. Der WebClient von RustDesk sollte im Normalfall HTTPS verwenden, um eine verschlüsselte Kommunikation zu gewährleisten. Vermeiden Sie die Verwendung von ungesicherten HTTP-Verbindungen für eine zuverlässige und sichere Interaktion bei Fernwartungen.'),
+      SizedBox(height: 20),
+      Text('Die Prüfung hat ergeben:'),
+      SizedBox(height: 10),
+      Container(
+          color: provider.protocol == "https" ? Colors.green : Colors.red,
+          child: Text(
+            provider.protocol == "https"
+                ? 'Es wird HTTPS als Protokoll benutzt'
+                : 'Es wird nur HTTP als Protokoll benutzt',
+            style: TextStyle(color: Colors.white),
+          )),
+
+      //Ggf. Zertifikatsanalyse
+    ]);
+  }
+
+  Widget buildDialogContentTwo() {
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
+    final key = FFI.getByName('option', 'key');
+    return Column(children: [
+      SizedBox(height: 20),
+      Text(
+          'Schützen Sie Ihre Verbindung mit starken Verschlüsselungsverfahren. In RustDesk ist es möglich einen SSH-Key des Rust Desk Servers einzugeben, für eine sichere Kommunikation zwischen dem WebClient und dem RustDesk Server. Gewährleisten Sie so einen geschützten Datenaustausch.'),
+      SizedBox(height: 20),
+      Text('Eingegebener Key:'),
+      SizedBox(height: 10),
+      Container(
+          color: provider.secondSecReq ? Colors.green : Colors.red,
+          child: Text(
+            '$key',
+            style: TextStyle(color: Colors.white),
+          )),
+    ]);
+  }
+
+  Widget buildDialogContentThree() {
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
+    String network = provider.network;
+    return Column(children: [
+      SizedBox(height: 20),
+      Text(
+          'Es wird die Art der Netzwerkverbindung identifiziert. RustDesk unterscheidet automatisch mobile (cellular), Ethernet und VPN-Verbindungen als sicher. Beachten Sie, dass Wi-Fi-Verbindungen generell als unsicher gelten, jedoch bei privaten Wi-Fi-Netzwerken sicher sein können. Optimieren Sie Ihre Einstellungen basierend auf dieser Unterscheidung für eine effiziente und sichere Fernwartung.'),
+      SizedBox(height: 20),
+      Text('Die Prüfung hat ergeben:'),
+      SizedBox(height: 10),
+      Container(
+          color: provider.thirdSecReq ? Colors.green : Colors.red,
+          child: Text(
+            '$network',
+            style: TextStyle(color: Colors.white),
+          )),
+    ]);
+  }
+
+  Widget buildDialogContentFour() {
+    return Column(children: [
+      SizedBox(height: 20),
+      Text(
+          'Loggen Sie ausgehende Fernwartungsitzungen. RustDesk zeichnet die Uhrzeit, Sitzungsdauer und Geräteinformationen des Peers auf. Downloaden Sie Logs für eine umfassende Historie Ihrer Fernwartungssitzungen.'),
+      SizedBox(height: 20),
+    ]);
+  }
+
+  Widget buildDialogContentFive() {
+    return Column(children: [
+      SizedBox(height: 20),
+      Text(
+          'Verhindern Sie unbefugten Zugriff bei Inaktivität. RustDesk integriert einen Timer, der bei fehlenden Aktionen abläuft. So wird die Fernwartung sicher unterbrochen.'),
+      SizedBox(height: 20),
+    ]);
+  }
+
+  Widget buildDialogContentSix() {
+    return Column(children: [
+      SizedBox(height: 20),
+      Text(
+          'Erfassen Sie wichtige Momente Ihrer Fernwartung. RustDesk ermöglicht die Bildschirmaufzeichnung, die sicher im Browser gespeichert wird. Halten Sie wichtige Details für spätere Überprüfungen fest.'),
+      SizedBox(height: 20),
+    ]);
+  }
+
+  Widget buildDialogContentSeven() {
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
+    return Column(children: [
+      SizedBox(height: 20),
+      Text(
+          'Halten Sie Ihren WebClient auf dem neuesten Stand. RustDesk überprüft automatisch Versionen für Updates. Vergleichen Sie WebClient-Versionen, um von den neuesten Funktionen und Sicherheitsverbesserungen zu profitieren.'),
+      SizedBox(height: 20),
+      Container(
+          color: provider.secondSecReq ? Colors.green : Colors.red,
+          child: Text(
+            'Aktuelle Version: $version',
+            style: TextStyle(color: Colors.white),
+          )),
+      SizedBox(height: 10),
+      InkWell(
+          onTap: () {
+            if (version != newestWebVersion) {
+              _launchURL();
+            }
+          },
+          child: Text(
+            'Neueste Version: $newestWebVersion',
+          )),
+    ]);
+  }
+
+  void _launchURL() async {
+    final httpsUri = Uri(
+        scheme: 'https', host: 'rustdesk.com', path: 'docs/de/dev/build/web/');
+
+    if (await canLaunchUrl(httpsUri)) {
+      await launchUrl(httpsUri);
+    } else {
+      throw 'Konnte die Internetseite nicht öffnen: $httpsUri';
+    }
   }
 }

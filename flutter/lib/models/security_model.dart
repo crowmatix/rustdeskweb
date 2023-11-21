@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:math';
-import 'dart:html';
 import 'dart:js';
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/common.dart';
@@ -50,14 +49,13 @@ class SecurityProvider extends ChangeNotifier {
   }
 
   Future<void> requirementsCheck() async {
-    isSeOneCheck();
+    await isSeOneCheck();
     isSecTwoCheck();
-    isSecThreeCheck();
+    await isSecThreeCheck();
     await isSecFourCheck();
     await isSecFiveCheck();
     await isSecSixCheck();
     isSecSevenCheck();
-
     isOverAllSecurityCheck();
   }
 
@@ -68,9 +66,14 @@ class SecurityProvider extends ChangeNotifier {
     String protocolValue = protocolMap['protocol'];
     protocol = protocolValue;
 
-    if (protocolValue == "https") {
-      firstSecReq = true;
-      // Persistent speichern
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? reqOne = prefs.getBool('reqOne');
+    if (reqOne != null) {
+      firstSecReq = reqOne;
+    } else {
+      if (protocolValue == "https") {
+        changeFirstSecReq(true);
+      }
     }
   }
 
@@ -166,6 +169,12 @@ class SecurityProvider extends ChangeNotifier {
       overallSecurity = false;
     }
     notifyListeners();
+  }
+
+  Future<void> changeFirstSecReq(bool b) async {
+    firstSecReq = b;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('reqOne', b);
   }
 
   void changeSecondSecReq(bool b) {
