@@ -32,6 +32,8 @@ class SecurityProvider extends ChangeNotifier {
   late String protocol;
   late String network;
 
+  //final BuildInfo buildInfo = BuildInfo();
+
   SecurityProvider({
     this.firstSecReq = false,
     this.secondSecReq = false,
@@ -52,6 +54,8 @@ class SecurityProvider extends ChangeNotifier {
   }
 
   Future<void> requirementsCheck() async {
+    //buildInfo.startUp();
+
     await isSeOneCheck();
     isSecTwoCheck();
     await isSecThreeCheck();

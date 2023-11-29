@@ -726,7 +726,7 @@ class SecMenuState extends State<SecMenu> with TickerProviderStateMixin {
         builder: (context) {
           return AlertDialog(
             title: Text(title),
-            content: Container(width: 100, child: Text(content)),
+            content: Container(width: 125, child: Text(content)),
             actions: <Widget>[],
           );
         });
@@ -749,7 +749,7 @@ class SecMenuState extends State<SecMenu> with TickerProviderStateMixin {
             ]),
             content: Container(
               width: double.maxFinite,
-              height: 350,
+              height: 325,
               child: DefaultTabController(
                 length: 7,
                 child: Column(
@@ -809,7 +809,7 @@ class SecMenuState extends State<SecMenu> with TickerProviderStateMixin {
       Text('Die Prüfung hat ergeben:'),
       SizedBox(height: 10),
       Container(
-          color: provider.protocol == "https" ? Colors.green : Colors.red,
+          color: provider.protocol == "https" ? greenColor : redColor,
           child: Text(
             provider.protocol == "https"
                 ? 'Es wird HTTPS als Protokoll benutzt'
@@ -817,7 +817,7 @@ class SecMenuState extends State<SecMenu> with TickerProviderStateMixin {
             style: TextStyle(color: Colors.white),
           )),
 
-      //Ggf. Zertifikatsanalyse
+      // Zertifikatsanalyse !!!
     ]);
   }
 
@@ -832,7 +832,7 @@ class SecMenuState extends State<SecMenu> with TickerProviderStateMixin {
       Text('Eingegebener Key:'),
       SizedBox(height: 10),
       Container(
-          color: provider.secondSecReq ? Colors.green : Colors.red,
+          color: provider.secondSecReq ? greenColor : redColor,
           child: Text(
             '$key',
             style: TextStyle(color: Colors.white),
@@ -851,7 +851,7 @@ class SecMenuState extends State<SecMenu> with TickerProviderStateMixin {
       Text('Die Prüfung hat ergeben:'),
       SizedBox(height: 10),
       Container(
-          color: provider.thirdSecReq ? Colors.green : Colors.red,
+          color: provider.thirdSecReq ? greenColor : redColor,
           child: Text(
             '$network',
             style: TextStyle(color: Colors.white),
@@ -860,20 +860,44 @@ class SecMenuState extends State<SecMenu> with TickerProviderStateMixin {
   }
 
   Widget buildDialogContentFour() {
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
     return Column(children: [
       SizedBox(height: 20),
       Text(
           'Loggen Sie ausgehende Fernwartungsitzungen. RustDesk zeichnet die Uhrzeit, Sitzungsdauer und Geräteinformationen des Peers auf. Downloaden Sie Logs für eine umfassende Historie Ihrer Fernwartungssitzungen.'),
       SizedBox(height: 20),
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: <Widget>[
+        Text('Wollen Sie die Fernwartungsessions loggen?'),
+        Switch(
+          // This bool value toggles the switch.
+          value: provider.fourthSecReq,
+          activeColor: greenColor,
+          onChanged: (bool? newValue) {
+            provider.changeFourthSecReq(newValue!);
+          },
+        ),
+      ]),
     ]);
   }
 
   Widget buildDialogContentFive() {
+    final provider = Provider.of<SecurityProvider>(context, listen: false);
     return Column(children: [
       SizedBox(height: 20),
       Text(
-          'Verhindern Sie unbefugten Zugriff bei Inaktivität. RustDesk integriert einen Timer, der bei fehlenden Aktionen abläuft. So wird die Fernwartung sicher unterbrochen.'),
+          'Verhindern Sie unbefugten Zugriff bei Inaktivität. RustDesk integriert einen Timer, der bei fehlenden Aktionen abläuft. So wird die Fernwartung sicher unterbrochen, standardmäßig sind 60 sek eingestellt. Dies kann über das Security Menü speziell eingestellt werden.'),
       SizedBox(height: 20),
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: <Widget>[
+        Text('Wollen Sie die Fernwartung bei Inaktivität unterbrechen?'),
+        Switch(
+          // This bool value toggles the switch.
+          value: provider.fifthSecReq,
+          activeColor: greenColor,
+          onChanged: (bool? newValue) {
+            provider.changeFifthSecReq(newValue!);
+          },
+        ),
+      ]),
     ]);
   }
 
@@ -881,7 +905,7 @@ class SecMenuState extends State<SecMenu> with TickerProviderStateMixin {
     return Column(children: [
       SizedBox(height: 20),
       Text(
-          'Erfassen Sie wichtige Momente Ihrer Fernwartung. RustDesk ermöglicht die Bildschirmaufzeichnung, die sicher im Browser gespeichert wird. Halten Sie wichtige Details für spätere Überprüfungen fest.'),
+          'Erfassen Sie wichtige Momente Ihrer Fernwartung. Der WebClient von RustDesk ermöglicht die Bildschirmaufzeichnung, die sicher im Browser gespeichert wird. Halten Sie wichtige Details für spätere Überprüfungen fest, indem sie über den Schalter des Security Menü Item "Bildschirmaufzeichnung" die Aufzeichnung starten und stoppen.'),
       SizedBox(height: 20),
     ]);
   }
@@ -894,7 +918,7 @@ class SecMenuState extends State<SecMenu> with TickerProviderStateMixin {
           'Halten Sie Ihren WebClient auf dem neuesten Stand. RustDesk überprüft automatisch Versionen für Updates. Vergleichen Sie WebClient-Versionen, um von den neuesten Funktionen und Sicherheitsverbesserungen zu profitieren.'),
       SizedBox(height: 20),
       Container(
-          color: provider.secondSecReq ? Colors.green : Colors.red,
+          color: provider.secondSecReq ? greenColor : redColor,
           child: Text(
             'Aktuelle Version: $version',
             style: TextStyle(color: Colors.white),

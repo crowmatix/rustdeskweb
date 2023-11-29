@@ -94,9 +94,7 @@ class WebHomePage extends StatelessWidget {
     final provider = Provider.of<SecurityProvider>(context, listen: false);
     provider.requirementsCheck();
 
-    var subscription = Connectivity()
-        .onConnectivityChanged
-        .listen((ConnectivityResult result) {
+    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       changeConStatus(provider, result);
     });
 
