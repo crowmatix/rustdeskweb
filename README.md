@@ -9,9 +9,9 @@ RustDesk heißt jegliche Mitarbeit willkommen. Schau dir [`CONTRIBUTING.md`](CON
 ## RustDeskWeb Schritte
 
 ```sh
-git clone https://github.com/JelleBuning/rustdesk.git
-cd rustdesk
-git switch fix_build
+git clone https://github.com/crowmatix/rustdeskweb.git
+cd rustdeskweb
+git switch sec_build
 cd flutter/web/js
 
 # Zuerst protoc installieren, siehe https://google.github.io/proto-lens/installing-protoc.html
