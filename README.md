@@ -1,6 +1,6 @@
 <p align="center">
   <img src="logo-header.svg" alt="RustDesk - Your remote desktop"><br>
-  <a href="#rustdeskweb">RustDeskWeb</a> •
+  <a href="#rustdeskweb-schritte">RustDeskWeb</a> •
   <a href="#dateistruktur">Dateistruktur</a> •
   
 Das hier ist ein Programm was, man nutzen kann, um einen Computer fernzusteuern, es wurde in Rust geschrieben. Es funktioniert ohne Konfiguration oder ähnliches, man kann es einfach direkt nutzen. Du hast volle Kontrolle über deine Daten und brauchst dir daher auch keine Sorgen um die Sicherheit dieser Daten zu machen.
