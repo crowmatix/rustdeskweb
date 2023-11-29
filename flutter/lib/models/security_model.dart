@@ -238,7 +238,7 @@ class SecurityProvider extends ChangeNotifier {
     String formattedTime =
         "${timeNow.day}.${timeNow.month}.${timeNow.year} - ${timeNow.hour}:";
 
-    formattedTime += addZeroToString(timeNow.minute, true) + ':';
+    formattedTime += '${addZeroToString(timeNow.minute, true)}:';
     formattedTime += addZeroToString(timeNow.second, false);
 
     final newRow = DataRow(cells: [
@@ -333,15 +333,17 @@ class SecurityProvider extends ChangeNotifier {
 
   String addZeroToString(int digit, bool minute) {
     if (minute) {
-      if (digit < 10)
-        return '0${digit}';
-      else
-        return '${digit}';
+      if (digit < 10) {
+        return '0$digit';
+      } else {
+        return '$digit';
+      }
     } else {
-      if (digit < 10)
-        return '0${digit}';
-      else
-        return '${digit}';
+      if (digit < 10) {
+        return '0$digit';
+      } else {
+        return '$digit';
+      }
     }
   }
 
